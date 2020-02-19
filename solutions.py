@@ -1,47 +1,159 @@
-""" Solutions to problems presented in the docs section """
+import copy
 
 
-def practice_problem(data_set, max_set_size=0, verbose=False):
-    """ Solution to problem outlined in practice_problem.pdf. """
+class PracticeSolution:
+    """ An example class of  """
 
-    set_results = []
-    print(f"Attempting solution of {len(data_set)} data set(s)...")
+    def __init__(self, data):
+        self.set_name = data['set_name']
+        self.max_weight = data['max_weight']
+        self.values = data['values']
+        self.size = len(data['values'])
 
-    for data in data_set:
+    def format_results(self, results):
+        """ Print that we have got the receipts, and return them
+            with proper formatting. """
 
-        # Allows us to set a max "set_size" if we want to focus on solving smaller sets first.
-        if (not max_set_size) or (max_set_size and int(data['set_size']) < max_set_size):
+        set_results = {
+            'set_name': self.set_name,
+            'max_weight': self.max_weight,
+            'set_size': len(results),
+            'values': results,
+            'score': sum(results)
+        }
+        print(f"Results: Total score {sum(results)} with set of {len(results)} values.")
+        return set_results
 
-            # Import our values from the data set.
-            val_list = []
-            set_name = data['set_name']
-            key = data['max_val']
-            values = [int(x) for x in data['values'][::-1]]
+    def fast_solution(self):
+        """ Fast solution. Formulated to solve the problem outlined
+            in docs/practice_problem.pdf. """
 
-            if verbose:
-                print(f"New problem set. Working with set {set_name}, key {key} and set size of {len(values)}")
+        print(f"Solving for set {self.set_name} using \"Fast\" solution...")
 
-            # Our main logic loop.
-            for x in values:
-                if (key - x) >= 0:
-                    key -= x
-                    val_list.append(x)
+        # Init our local variables.
+        return_values = []
+        weight = self.max_weight
+        values = self.values
 
-            # Parse our results.
-            results = {
-                'set_name': set_name,
-                'max_val': data['max_val'],
-                'set_size': len(val_list),
-                'values': val_list,
-                'score': sum(val_list)
-            }
+        # Make a safe copy of these values so we can manipulate them.
+        key = copy.copy(weight)
+        remaining = copy.deepcopy(values)
 
-            if verbose:
-                print(f"Results: Total score {results['score']} with set of {results['set_size']} values.")
+        # For each value (x) in our set, starting with the largest values first.
+        for x in values[::-1]:
 
-            # Append our results to the set.
-            set_results.append(results)
+            # Subtract (x) from the max value (key) if the result is not-negative.
+            if (key - x) >= 0:
+                key -= x
 
-    # Return our set of results.
-    print(f"Computation finished. Returning {len(set_results)} result(s).")
-    return set_results
+                # Then add it to return_value list, and remove it from remaining list.
+                return_values.append(x)
+                remaining.remove(x)
+
+        # If we do not end up with a perfect score, brute-force search the remainder.
+        if weight != sum(return_values):
+            return_values = self.brute_search(weight, return_values, remaining)
+
+        # Some safety assertions to make sure things are running smoothly.
+        assert weight == self.max_weight and weight != key
+        assert len(values) != len(remaining)
+        assert sum(return_values) <= weight
+
+        return self.format_results(return_values)
+
+    def knapsack_solution(self):
+        """ The "Knapsack" solution. Formulated to solve the problem
+            outlined in docs/practice_problem.pdf. """
+
+        print(f"Solving for set {self.set_name} using \"Knapsack\" solution...")
+
+        # Init our local variables.
+        return_values = []
+        mw = self.max_weight
+        n = self.size
+        wt = self.values
+        val = self.values
+
+        # Init our knapsack array.
+        k = [[0 for x in range(mw + 1)] for x in range(n + 1)]
+
+        # Build our knapsack bottom-up. We are counting from 0-n.
+        for i in range(n + 1):
+            # For each lower-bound limit of weight in max weight:
+            for w in range(mw + 1):
+
+                # If zero, set to zero.
+                if i == 0 or w == 0:
+                    k[i][w] = 0
+
+                # If value is less than current limit, do complex math:
+                elif wt[i - 1] <= w:
+                    # The secret sauce.
+                    k[i][w] = max(val[i-1] + k[i-1][w-wt[i-1]], k[i-1][w])
+
+                # Else value is greater than current limit, use value.
+                else:
+                    k[i][w] = k[i-1][w]
+
+        # The end of our table equals the total weight of the knapsack.
+        result = k[n][mw]
+
+        # Make a safe copy of these values so we can manipulate them.
+        w = copy.copy(mw)
+        res = copy.copy(result)
+
+        # Now let's unpack the items in our knapsack.
+        for i in range(n, 0, -1):
+            # Upon zero, we have emptied our knapsack.
+            if res <= 0:
+                break
+            # Ignore top results in the table, they are not relevant.
+            if res == k[i-1][w]:
+                continue
+            else:
+                # All other items must be inside our knapsack.
+                if wt[i-1]:
+                    return_values.append(wt[i-1])
+
+                # Update our pointers as we retrieve each item,
+                # so we can next find the item below it.
+                res = res - val[i-1]
+                w = w - wt[i-1]
+
+        return self.format_results(return_values[::-1])
+
+    @staticmethod
+    def brute_search(weight, results, values):
+        """ Check each value in our results and see if we can replace it
+            with a better pair of values using brute-force search.
+
+            The "fast" method should get us very close to the answer, so
+            we want to start at the lowest values and work our way up. """
+
+        # Init our local variables.
+        score = sum(results)
+
+        print(f"Current score {score}:{weight}, difference of {weight - score}. Searching for better values...")
+
+        # For each value (x) in our current results, compare it against pairs of values from the
+        # remaining set (of values that we didn't use) and see if they add up to a better score.
+        for x in results:
+            key = score - x
+            for i in range(0, len(values)):
+                for j in range(i + 1, len(values)):
+
+                    # Ideally we should handle more match cases, but this works perfectly (for now).
+                    match = values[i] + values[j]
+                    if key + match == weight:
+
+                        print(f"Found new values ({values[i]} + {values[j]}) to replace {x}.")
+
+                        # So long (x), there's a new dynamic duo in town.
+                        results.remove(x)
+                        results.append(values[i])
+                        results.append(values[j])
+
+                        # Make sure everything checks out, and return results.
+                        assert sum(results) == weight
+
+                        return results

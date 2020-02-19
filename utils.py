@@ -2,13 +2,12 @@ import os
 
 
 def load_data_dir(directory, extension=".in", delimiter=" ", keymap=False):
-    """
-    Load all files in a given directory and compile into a data-set.
+    """ Load all files in a given directory and compile into a data-set.
 
     :directory: - The relative path to where files are stored.
     :extension: - The file extension to look for.
-    :delimiter: - The delimiter to use when splitting the file string.
-    """
+    :delimiter: - The delimiter to use when splitting the file string. """
+
     data = []
     print(f"Loading files in directory: {directory}")
 
@@ -29,9 +28,8 @@ def load_data_dir(directory, extension=".in", delimiter=" ", keymap=False):
 
 
 def load_file(filename, filepath, delimiter):
-    """
-    Load file using given delimiter and return list object.
-    """
+    """ Load file using given delimiter and return list object. """
+
     print(f"Loading file {filename}...")
     with open(filepath, 'r') as file:
         header = [filename.rsplit('.', 1)[0]]
@@ -39,18 +37,17 @@ def load_file(filename, filepath, delimiter):
 
 
 def export_results(directory, data_set):
-    """
-    Write our data sets into the proper file format.
+    """ Write our data sets into the proper file format.
 
     :directory: The directory to save our files to.
-    :data_set:  The data to be exported.
-    """
+    :data_set:  The data to be exported. """
+
     file_count = 0
     print(f"Attempting to write {len(data_set)} data set(s) to directory {directory}...")
 
     for data in data_set:
 
-        file_path = directory + "/" + str(data['set_name']) + '_results.txt'
+        file_path = directory + "/" + str(data['set_name']) + '_results.in'
         lines = str(data['set_size']), '\n', ' '.join([str(x) for x in data['values']])
 
         with open(file_path, 'w') as file:
