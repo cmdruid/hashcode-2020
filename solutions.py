@@ -19,7 +19,7 @@ class PracticeSolution:
             'set_name': self.set_name,
             'max_weight': self.max_weight,
             'set_size': len(results),
-            'values': results,
+            'values': results.sort(),
             'score': sum(results)
         }
         print(f"Results: Total score {sum(results)} with set of {len(results)} values.")
@@ -33,19 +33,19 @@ class PracticeSolution:
 
         # Init our local variables.
         return_values = []
+        total = 0
         weight = self.max_weight
         values = self.values
 
-        # Make a safe copy of these values so we can manipulate them.
-        key = copy.copy(weight)
+        # Make a safe copy of our value set so we can manipulate the copy.
         remaining = copy.deepcopy(values)
 
-        # For each value (x) in our set, starting with the largest values first.
-        for x in values[::-1]:
+        # For each value (x) in our set.
+        for x in values:
 
-            # Subtract (x) from the max value (key) if the result is not-negative.
-            if (key - x) >= 0:
-                key -= x
+            # Add (x) from the max value (key) if the result is not-negative.
+            if (total + x) < weight:
+                total += x
 
                 # Then add it to return_value list, and remove it from remaining list.
                 return_values.append(x)
@@ -56,7 +56,6 @@ class PracticeSolution:
             return_values = self.brute_search(weight, return_values, remaining)
 
         # Some safety assertions to make sure things are running smoothly.
-        assert weight == self.max_weight and weight != key
         assert len(values) != len(remaining)
         assert sum(return_values) <= weight
 
@@ -121,38 +120,42 @@ class PracticeSolution:
                 res = res - val[i-1]
                 w = w - wt[i-1]
 
-        return self.format_results(return_values[::-1])
+        return self.format_results(return_values)
 
     @staticmethod
     def brute_search(weight, results, values):
-        """ Check each value in our results and see if we can replace it
-            with a better pair of values using brute-force search.
+        """ Loop through each value in our remainder set and check if it can
+            replace two lesser values in our results to give us a better score.
 
             The "fast" method should get us very close to the answer, so
-            we want to start at the lowest values and work our way up. """
+            we want to start at the largest values in our results and work backwards.
+
+            Note: This actually works even faster in reverse, but the google code
+                  judges would not allow it! :-( """
 
         # Init our local variables.
         score = sum(results)
 
         print(f"Current score {score}:{weight}, difference of {weight - score}. Searching for better values...")
 
-        # For each value (x) in our current results, compare it against pairs of values from the
-        # remaining set (of values that we didn't use) and see if they add up to a better score.
-        for x in results:
-            key = score - x
-            for i in range(0, len(values)):
-                for j in range(i + 1, len(values)):
+        # For each (z) in our remaining set of un-used values, compare it against the largest pairs of values
+        # from our results and work back-ward through the list.
+        for z in range(0, len(values)):
+            key = score + values[z]
+            for i in range(len(results)-1, 0, -1):
+                for j in range(i-1, 0, -1):
 
+                    # Check if we can replace two smaller numbers with a more fitting number.
                     # Ideally we should handle more match cases, but this works perfectly (for now).
-                    match = values[i] + values[j]
-                    if key + match == weight:
+                    match = results[i] + results[j]
+                    if key - match == weight:
 
-                        print(f"Found new values ({values[i]} + {values[j]}) to replace {x}.")
+                        print(f"Found a new value {values[z]} to replace ({results[i]}, {results[j]}).")
 
-                        # So long (x), there's a new dynamic duo in town.
-                        results.remove(x)
-                        results.append(values[i])
-                        results.append(values[j])
+                        # Swap out our smaller values with the more fitting one.
+                        results.remove(results[i])
+                        results.remove(results[j])
+                        results.append(values[z])
 
                         # Make sure everything checks out, and return results.
                         assert sum(results) == weight

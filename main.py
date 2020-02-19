@@ -32,4 +32,4 @@ for s in solution_set:
     print(f"Name: {s['set_name']}, Score: {s['score'] / s['max_weight']}")
 
 # Write our results to file.
-export_results('results', solution_set)
+# export_results('results', solution_set)
