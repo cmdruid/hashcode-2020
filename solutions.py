@@ -15,11 +15,17 @@ class PracticeSolution:
         """ Print that we have got the receipts, and return them
             with proper formatting. """
 
+        # Convert our results into their index values within the original set.
+        indexed_results = []
+        results.sort()
+        for x in results:
+            indexed_results.append(self.values.index(x))
+
         set_results = {
             'set_name': self.set_name,
             'max_weight': self.max_weight,
             'set_size': len(results),
-            'values': results.sort(),
+            'values': indexed_results,
             'score': sum(results)
         }
         print(f"Results: Total score {sum(results)} with set of {len(results)} values.")
