@@ -15,21 +15,27 @@ class PracticeSolution:
         """ Print that we have got the receipts, and return them
             with proper formatting. """
 
-        # Convert our results into their index values within the original set.
+        score = self.sum_of_tuples(results)
+
+        # Convert our results into their index values.
         indexed_results = []
-        results.sort()
         for x in results:
-            indexed_results.append(self.values.index(x))
+            indexed_results.append(x[0])
+        indexed_results.sort()
 
         set_results = {
             'set_name': self.set_name,
             'max_weight': self.max_weight,
             'set_size': len(results),
             'values': indexed_results,
-            'score': sum(results)
+            'score': score
         }
-        print(f"Results: Total score {sum(results)} with set of {len(results)} values.")
+        print(f"Results: Total score {score} with set of {len(results)} values.")
         return set_results
+
+    @staticmethod
+    def sum_of_tuples(tuples):
+        return sum([x[1] for x in tuples])
 
     def fast_solution(self):
         """ Fast solution. Formulated to solve the problem outlined
@@ -50,86 +56,86 @@ class PracticeSolution:
         for x in values:
 
             # Add (x) from the max value (key) if the result is not-negative.
-            if (total + x) < weight:
-                total += x
+            if (total + x[1]) < weight:
+                total += x[1]
 
                 # Then add it to return_value list, and remove it from remaining list.
                 return_values.append(x)
                 remaining.remove(x)
 
         # If we do not end up with a perfect score, brute-force search the remainder.
-        if weight != sum(return_values):
+        if weight != self.sum_of_tuples(return_values):
             return_values = self.brute_search(weight, return_values, remaining)
 
         # Some safety assertions to make sure things are running smoothly.
         assert len(values) != len(remaining)
-        assert sum(return_values) <= weight
+        assert self.sum_of_tuples(return_values) <= weight
 
         return self.format_results(return_values)
 
-    def knapsack_solution(self):
-        """ The "Knapsack" solution. Formulated to solve the problem
-            outlined in docs/practice_problem.pdf. """
+    # def knapsack_solution(self):
+    #     """ The "Knapsack" solution. Formulated to solve the problem
+    #         outlined in docs/practice_problem.pdf. """
+    #
+    #     print(f"Solving for set {self.set_name} using \"Knapsack\" solution...")
+    #
+    #     # Init our local variables.
+    #     return_values = []
+    #     mw = self.max_weight
+    #     n = self.size
+    #     wt = self.values
+    #     val = self.values
+    #
+    #     # Init our knapsack array.
+    #     k = [[0 for x in range(mw + 1)] for x in range(n + 1)]
+    #
+    #     # Build our knapsack bottom-up. We are counting from 0-n.
+    #     for i in range(n + 1):
+    #         # For each lower-bound limit of weight in max weight:
+    #         for w in range(mw + 1):
+    #
+    #             # If zero, set to zero.
+    #             if i == 0 or w == 0:
+    #                 k[i][w] = 0
+    #
+    #             # If value is less than current limit, do complex math:
+    #             elif wt[i - 1] <= w:
+    #                 # The secret sauce.
+    #                 k[i][w] = max(val[i-1] + k[i-1][w-wt[i-1]], k[i-1][w])
+    #
+    #             # Else value is greater than current limit, use value.
+    #             else:
+    #                 k[i][w] = k[i-1][w]
+    #
+    #     # The end of our table equals the total weight of the knapsack.
+    #     result = k[n][mw]
+    #
+    #     # Make a safe copy of these values so we can manipulate them.
+    #     w = copy.copy(mw)
+    #     res = copy.copy(result)
+    #
+    #     # Now let's unpack the items in our knapsack.
+    #     for i in range(n, 0, -1):
+    #         # Upon zero, we have emptied our knapsack.
+    #         if res <= 0:
+    #             break
+    #         # Ignore top results in the table, they are not relevant.
+    #         if res == k[i-1][w]:
+    #             continue
+    #         else:
+    #             # All other items must be inside our knapsack.
+    #             if wt[i-1]:
+    #                 return_values.append(wt[i-1])
+    #
+    #             # Update our pointers as we retrieve each item,
+    #             # so we can next find the item below it.
+    #             res = res - val[i-1]
+    #             w = w - wt[i-1]
+    #
+    #     return self.format_results(return_values)
 
-        print(f"Solving for set {self.set_name} using \"Knapsack\" solution...")
-
-        # Init our local variables.
-        return_values = []
-        mw = self.max_weight
-        n = self.size
-        wt = self.values
-        val = self.values
-
-        # Init our knapsack array.
-        k = [[0 for x in range(mw + 1)] for x in range(n + 1)]
-
-        # Build our knapsack bottom-up. We are counting from 0-n.
-        for i in range(n + 1):
-            # For each lower-bound limit of weight in max weight:
-            for w in range(mw + 1):
-
-                # If zero, set to zero.
-                if i == 0 or w == 0:
-                    k[i][w] = 0
-
-                # If value is less than current limit, do complex math:
-                elif wt[i - 1] <= w:
-                    # The secret sauce.
-                    k[i][w] = max(val[i-1] + k[i-1][w-wt[i-1]], k[i-1][w])
-
-                # Else value is greater than current limit, use value.
-                else:
-                    k[i][w] = k[i-1][w]
-
-        # The end of our table equals the total weight of the knapsack.
-        result = k[n][mw]
-
-        # Make a safe copy of these values so we can manipulate them.
-        w = copy.copy(mw)
-        res = copy.copy(result)
-
-        # Now let's unpack the items in our knapsack.
-        for i in range(n, 0, -1):
-            # Upon zero, we have emptied our knapsack.
-            if res <= 0:
-                break
-            # Ignore top results in the table, they are not relevant.
-            if res == k[i-1][w]:
-                continue
-            else:
-                # All other items must be inside our knapsack.
-                if wt[i-1]:
-                    return_values.append(wt[i-1])
-
-                # Update our pointers as we retrieve each item,
-                # so we can next find the item below it.
-                res = res - val[i-1]
-                w = w - wt[i-1]
-
-        return self.format_results(return_values)
-
-    @staticmethod
-    def brute_search(weight, results, values):
+    @classmethod
+    def brute_search(cls, weight, results, values):
         """ Loop through each value in our remainder set and check if it can
             replace two lesser values in our results to give us a better score.
 
@@ -140,23 +146,23 @@ class PracticeSolution:
                   judges would not allow it! :-( """
 
         # Init our local variables.
-        score = sum(results)
+        score = cls.sum_of_tuples(results)
 
         print(f"Current score {score}:{weight}, difference of {weight - score}. Searching for better values...")
 
         # For each (z) in our remaining set of un-used values, compare it against the largest pairs of values
         # from our results and work back-ward through the list.
         for z in range(0, len(values)):
-            key = score + values[z]
+            key = score + values[z][1]
             for i in range(len(results)-1, 0, -1):
                 for j in range(i-1, 0, -1):
 
                     # Check if we can replace two smaller numbers with a more fitting number.
                     # Ideally we should handle more match cases, but this works perfectly (for now).
-                    match = results[i] + results[j]
+                    match = results[i][1] + results[j][1]
                     if key - match == weight:
 
-                        print(f"Found a new value {values[z]} to replace ({results[i]}, {results[j]}).")
+                        print(f"Found a new value {values[z][1]} to replace ({results[i][1]}, {results[j][1]}).")
 
                         # Swap out our smaller values with the more fitting one.
                         results.remove(results[i])
@@ -164,6 +170,6 @@ class PracticeSolution:
                         results.append(values[z])
 
                         # Make sure everything checks out, and return results.
-                        assert sum(results) == weight
+                        assert cls.sum_of_tuples(results) == weight
 
                         return results
