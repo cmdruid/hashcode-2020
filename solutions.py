@@ -2,7 +2,8 @@ import copy
 
 
 class PracticeSolution:
-    """ An example class of  """
+    """ A class template for presenting our solution code in the
+        practice round and future challenges. """
 
     def __init__(self, data):
         self.set_name = data['set_name']
